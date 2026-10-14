@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lugrasimo&family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 
 </head>
 <body>
@@ -20,7 +21,8 @@
     <p id="now-time"></p>
     <p id="moon-age"></p>
     <p id="moon-illum"></p>
-
+    <p id="location"></p>
+    <p id="moon-position"></p>
     <div class="message-wrap">
     <p id="moon-message"></p>
 </div>
@@ -37,7 +39,7 @@
     color-scheme:dark;
 }
 body {
-    background: #2A0D64;
+    background: #3e0356;
     color: #bcdcea;
     font-family:"Press Start 2P", system-ui;
     font-style: normal;
@@ -223,5 +225,41 @@ document.getElementById('moon-message').textContent =
 updateMoon();
 setInterval(updateMoon, 1000); </script>
 
+<script>
+    const locationEl = document.getElementById('location');
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                locationEl.textContent =
+                    'Координаты: ' + lat.toFixed(2) + '°, ' + lon.toFixed(2) + '°';
+        const now = new Date();
+        const moon = SunCalc.getMoonPosition(now, lat, lon);
+
+        const azimuthDeg = moon.azimuth * 180 / Math.PI;
+        const altitudeDeg = moon.altitude * 180 / Math.PI;
+        
+        const directions = [
+    'север', 'северо-восток', 'восток', 'юго-восток',
+    'юг', 'юго-запад', 'запад', 'северо-запад'
+];
+
+const dirIndex = Math.round(azimuthDeg / 45) % 8;
+const direction = directions[dirIndex];
+
+document.getElementById('moon-position').textContent =
+    'Луна: ' + direction + ', азимут ' + azimuthDeg.toFixed(0) + '°, высота ' + altitudeDeg.toFixed(0) + '°';
+            },
+            (error) => {
+                locationEl.textContent = 'Не удалось получить координаты';
+                console.log('Ошибка геолокации:', error.message);
+            }
+        );
+    } else {
+        locationEl.textContent = 'Геолокация не поддерживается';
+    }
+</script>
 </body>
 </html>
