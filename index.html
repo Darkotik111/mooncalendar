@@ -147,7 +147,32 @@ font-family: 'Press Start 2P', italic;
     font-size: 30px;
     color: #df14a6;
 }
+#enable-sensor {
+    font-family: "Press Start 2P", system-ui;
+    font-size: 12px;
+    color: #f4e4a8;
+    background: transparent;
+    border: 2px solid #f4e4a8;
+    padding: 12px 20px;
+    margin: 0 0 16px;
+    cursor: pointer;
+    border-radius: 0;              /* пиксельная кнопка — прямые углы */
+    box-shadow: 0 0 15px rgba(244, 228, 168, 0.4);
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
+#enable-sensor:hover {
+    background: #f4e4a8;
+    color: #3e0356;
+    box-shadow: 0 0 25px rgba(244, 228, 168, 0.8);
+}
+
+#enable-sensor:active {
+    transform: translateY(2px);   /* «нажимается» вниз */
+    box-shadow: 0 0 10px rgba(244, 228, 168, 0.6);
+}
 .moon-glow {
     width: 400px;
     height: 400px;
@@ -239,6 +264,7 @@ font-size: 17px;}
     </div>
 
     <div class="compass-col">
+        <button id="enable-sensor">Включить компас</button>
         <div class="compass">
             <div class="compass-ring">
                 <span class="dir dir-n">С</span>
@@ -386,8 +412,9 @@ font-size: 17px;}
                 ];
                 const dirIndex = Math.round(azimuthDeg / 45) % 8;
                 const direction = directions[dirIndex];
-
+                
                 const moonPositionEl = document.getElementById('moon-position');
+                 window.moonAzimuth = azimuthDeg;
                 const arrow = document.getElementById('compass-arrow');
 
                 if (altitudeDeg < 0) {
@@ -405,10 +432,7 @@ font-size: 17px;}
                         altitudeDeg.toFixed(0) + '°';
                     arrow.style.opacity = '1';
                 }
-
-                arrow.style.transform =
-                    `translate(-50%, -100%) rotate(${azimuthDeg}deg)`;
-            },
+                       },
             (error) => {
                 locationEl.textContent = 'Не удалось получить координаты';
                 console.log('Ошибка геолокации:', error.message);
@@ -416,6 +440,26 @@ font-size: 17px;}
         );
     } else {
         locationEl.textContent = 'Геолокация не поддерживается';
+    }
+</script>
+
+<script>
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+
+        btn.addEventListener('click', async () => {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission === 'granted') {
+                startCompass();
+                btn.style.display = 'none';
+            } else {
+                alert('Разрешение не выдано');
+            }
+        });
+    } else {
+        // На Android и других — запускаем сразу
+        startCompass();
+        btn.style.display = 'none';
     }
 </script>
 </body>
