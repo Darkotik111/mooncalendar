@@ -21,6 +21,47 @@ body {
     text-align: center;
     padding: 20px;
 }
+.info-row {
+    display: flex;
+    align-items: center;         /* выравнивание по вертикали по центру */
+    justify-content: center;      /* центрируем весь блок на странице */
+    gap: 40px;                    /* отступ между колонками */
+    margin: 30px auto;
+    max-width: 900px;             /* чтобы на огромном экране не растягивалось */
+    flex-wrap: wrap;              /* разрешаем перенос, когда места мало */
+}
+
+.info-col {
+    flex: 1 1 400px;              /* растягивается, минимум 400px */
+    text-align: left;             /* текст слева */
+}
+
+.info-col p {
+    margin: 8px 0;                /* отступы между строками информации */
+    line-height: 1.5;
+}
+
+.compass-col {
+    flex: 0 0 280px;              /* компас фиксированной ширины */
+}
+
+/* Уменьшаем компас — он был 280px, теперь вписываем в колонку */
+.compass {
+    width: 240px;
+    height: 240px;
+    margin: 0;                    /* убираем авто-центрирование, оно теперь у родителя */
+}
+
+/* Буквы сторон света — тоже уменьшаем, чтобы влезли */
+.dir-n { transform: translate(-50%, -50%) translateY(-95px); }
+.dir-e { transform: translate(-50%, -50%) translateX(95px); }
+.dir-s { transform: translate(-50%, -50%) translateY(95px); }
+.dir-w { transform: translate(-50%, -50%) translateX(-95px); }
+
+/* Стрелка — короче, чтобы влезла */
+.compass-arrow {
+    height: 90px;
+}
 .compass {
     position: relative;
     width: 280px;
@@ -165,31 +206,52 @@ font-style:italic;
 color:rgba(241, 124, 184, 0.479) ;
 padding: 30px;
 font-size: 17px;}
+
+@media (max-width: 700px) {
+    .info-row {
+        flex-direction: column;   /* ставим колонки друг над другом */
+        gap: 20px;
+    }
+
+    .info-col {
+        text-align: center;       /* на телефоне текст по центру */
+    }
+
+    .compass-col {
+        flex: none;
+    }
+}
 </style>
 </head>
 <body>
     <h1>Лунный календарь</h1>
 
     <h2 id="moon-message"></h2>
-    <p id="today"></p>
-    <p id="now-time"></p>
-    <p id="moon-age"></p>
-    <p id="moon-illum"></p>
-    <p id="location"></p>
-    <p id="moon-position"></p>
-    <div class="message-wrap">
-         <h2 id="moon-message"></h2>
+   <div class="info-row">
+
+    <div class="info-col">
+        <p id="today"></p>
+        <p id="now-time"></p>
+        <p id="moon-age"></p>
+        <p id="moon-illum"></p>
+        <p id="location"></p>
+        <p id="moon-position"></p>
     </div>
-    <div class="compass">
-     <div class="compass-ring">
-        <span class="dir dir-n">С</span>
-        <span class="dir dir-e">В</span>
-        <span class="dir dir-s">Ю</span>
-        <span class="dir dir-w">З</span>
-     </div>
-    <div class="compass-arrow" id="compass-arrow"></div>
-    <div class="compass-center"></div>
+
+    <div class="compass-col">
+        <div class="compass">
+            <div class="compass-ring">
+                <span class="dir dir-n">С</span>
+                <span class="dir dir-e">В</span>
+                <span class="dir dir-s">Ю</span>
+                <span class="dir dir-w">З</span>
+            </div>
+            <div class="compass-arrow" id="compass-arrow"></div>
+            <div class="compass-center"></div>
+        </div>
     </div>
+
+</div>
 
    <div class="moon-glow">
     <div class="moon">
@@ -308,28 +370,44 @@ font-size: 17px;}
                 const lon = position.coords.longitude;
                 locationEl.textContent =
                     'Координаты: ' + lat.toFixed(2) + '°, ' + lon.toFixed(2) + '°';
-        const now = new Date();
-        const moon = SunCalc.getMoonPosition(now, lat, lon);
-// Азимут от SunCalc идёт от юга, переводим в «от севера»
-let azimuthDeg = moon.azimuth * 180 / Math.PI + 180;
 
-// Приводим к диапазону 0–360 (если получилось отрицательное или больше 360)
-azimuthDeg = (azimuthDeg + 360) % 360;
+                const now = new Date();
+                const moon = SunCalc.getMoonPosition(now, lat, lon);
 
-const altitudeDeg = moon.altitude * 180 / Math.PI;
+                // Азимут от SunCalc идёт от юга, переводим в «от севера»
+                let azimuthDeg = moon.azimuth * 180 / Math.PI + 180;
+                azimuthDeg = (azimuthDeg + 360) % 360;
 
-const directions = [
-    'север', 'северо-восток', 'восток', 'юго-восток',
-    'юг', 'юго-запад', 'запад', 'северо-запад'
-];
+                const altitudeDeg = moon.altitude * 180 / Math.PI;
 
-const dirIndex = Math.round(azimuthDeg / 45) % 8;
-const direction = directions[dirIndex];
+                const directions = [
+                    'север', 'северо-восток', 'восток', 'юго-восток',
+                    'юг', 'юго-запад', 'запад', 'северо-запад'
+                ];
+                const dirIndex = Math.round(azimuthDeg / 45) % 8;
+                const direction = directions[dirIndex];
 
-document.getElementById('moon-position').textContent =
-    'Луна: ' + direction + ', азимут ' + azimuthDeg.toFixed(0) + '°, высота ' + altitudeDeg.toFixed(0) + '°';
-    const arrow = document.getElementById('compass-arrow');
-arrow.style.transform = `translate(-50%, -100%) rotate(${azimuthDeg}deg)`;
+                const moonPositionEl = document.getElementById('moon-position');
+                const arrow = document.getElementById('compass-arrow');
+
+                if (altitudeDeg < 0) {
+                    // Луна под горизонтом
+                    moonPositionEl.textContent =
+                        'Луна под горизонтом, не видно (' + direction +
+                        ', азимут ' + azimuthDeg.toFixed(0) + '°, высота ' +
+                        altitudeDeg.toFixed(0) + '°)';
+                    arrow.style.opacity = '0.3';   // приглушаем стрелку
+                } else {
+                    // Луна над горизонтом
+                    moonPositionEl.textContent =
+                        'Луна: ' + direction + ', азимут ' +
+                        azimuthDeg.toFixed(0) + '°, высота ' +
+                        altitudeDeg.toFixed(0) + '°';
+                    arrow.style.opacity = '1';
+                }
+
+                arrow.style.transform =
+                    `translate(-50%, -100%) rotate(${azimuthDeg}deg)`;
             },
             (error) => {
                 locationEl.textContent = 'Не удалось получить координаты';
