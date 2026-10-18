@@ -448,17 +448,41 @@ font-size: 17px;}
     window.moonAzimuth = 0;
 
     // Функция запуска слежения за поворотом
-    function startCompass() {
-        window.addEventListener('deviceorientation', (event) => {
-            const phoneHeading = event.alpha || 0;
-            const arrowRotation = window.moonAzimuth - phoneHeading;
+   function startCompass() {
+    window.addEventListener('deviceorientation', (event) => {
+        let phoneHeading;
 
-            const arrow = document.getElementById('compass-arrow');
-            arrow.style.transform =
-                `translate(-50%, -100%) rotate(${arrowRotation}deg)`;
-        });
-    }
+        // Если это iOS — используем правильный компас
+        if (event.webkitCompassHeading) {
+            phoneHeading = event.webkitCompassHeading;
+        } 
+        // Если это Android или другое — используем alpha
+        else {
+            phoneHeading = event.alpha || 0;
+        }
 
+        const arrowRotation = window.moonAzimuth - phoneHeading;
+        const arrow = document.getElementById('compass-arrow');
+        arrow.style.transform = `translate(-50%, -100%) rotate(${arrowRotation}deg)`;
+    });
+}
+    let smoothRotation = 0;
+
+window.addEventListener('deviceorientation', (event) => {
+    let phoneHeading = event.webkitCompassHeading || event.alpha || 0;
+    let target = window.moonAzimuth - phoneHeading;
+
+    // Плавно приближаемся к цели (0.1 — скорость сглаживания)
+    // Формула учитывает переход через 360/0 градусов
+    let diff = target - smoothRotation;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    
+    smoothRotation += diff * 0.1;
+
+    const arrow = document.getElementById('compass-arrow');
+    arrow.style.transform = `translate(-50%, -100%) rotate(${smoothRotation}deg)`;
+});
     const btn = document.getElementById('enable-sensor');
 
     // На iPhone нужен запрос разрешения
